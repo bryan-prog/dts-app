@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
 
 class RegisterController extends Controller
 {
@@ -38,7 +39,7 @@ class RegisterController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('guest');
+        $this->middleware('auth');
     }
 
     /**
@@ -51,7 +52,14 @@ class RegisterController extends Controller
     {
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'suffix' => ['nullable', 'string', 'max:255'],
+            'office_dept' => ['required', 'string', 'max:255'],
+            'designation' => ['nullable', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255', 'unique:users'],
+            'user_level' => ['required', 'string', 'max:255'],
+            'contact' => ['nullable', 'string', 'max:255'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
     }
@@ -66,8 +74,47 @@ class RegisterController extends Controller
     {
         return User::create([
             'name' => $data['name'],
-            'email' => $data['email'],
+            'middle_name' => $data['middle_name'],
+            'last_name' => $data['last_name'],
+            'suffix' => $data['suffix'],
+            'office_dept' => $data['office_dept'],
+            'designation' => $data['designation'],
+            'username' => $data['username'],
+            'user_level' => $data['user_level'],
+            'contact' => $data['contact'],
             'password' => Hash::make($data['password']),
+            'active' => "1",
         ]);
+
+        return Redirect::action('HomeController@index')->with("message", "SUCCESSFULLY SAVED USER DATA!");
+    }
+
+    public function edit_user(Request $request)
+    {
+        User::where('id', $request->user_id)
+            ->update([
+                'name' => $request->name,
+                'middle_name' => $request->middle_name,
+                'last_name' => $request->last_name,
+                'suffix' => $request->suffix,
+                'office_dept' => $request->office_dept,
+                'designation' => $request->designation,
+                'username' => $request->username,
+                'user_level' => $request->user_level,
+                'contact' => $request->contact,
+                'active' => $request->user_status,
+            ]);
+
+        return back()->with('message', 'Successfully updated user information!');
+    }
+
+    public function change_password(Request $request)
+    {
+        User::where('id', $request->user_id)
+            ->update([
+                'password'=> Hash::make($request->change_pass),
+            ]);
+
+        return back()->with('message', 'Successfully updated password!');
     }
 }
